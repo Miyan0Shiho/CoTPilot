@@ -1,0 +1,44 @@
+# Core ML & NLP
+torch>=2.0.0
+transformers>=4.30.0
+datasets>=2.14.0
+accelerate
+sentence-transformers
+numpy
+pandas
+scipy
+scikit-learn
+
+# Utilities
+tqdm
+fire
+PyYAML
+jsonlines
+addict
+requests
+openai>=1.0.0
+tenacity
+
+# Evaluation
+rouge
+rouge-chinese
+rouge_score
+sacrebleu
+bert_score
+evaluate
+
+# Visualization (Optional)
+matplotlib
+seaborn
+prettytable
+
+# OpenCompass Specific
+mmengine-lite
+portalocker
+termcolor
+yapf
+black
+
+# EvoPrompt Specific
+nltk
+spacy

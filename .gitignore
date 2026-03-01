@@ -21,6 +21,7 @@ venv/
 !tasks.md
 !checklist.md
 !plan.md
+!requirements.txt
 
 # OS Artifacts
 .DS_Store
