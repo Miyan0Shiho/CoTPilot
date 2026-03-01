@@ -5,6 +5,12 @@ import os
 # Add project root to path
 sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
 
+# Add third_party dependencies to path
+third_party_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party"))
+if os.path.exists(third_party_dir):
+    sys.path.insert(0, os.path.join(third_party_dir, "opencompass"))
+    sys.path.insert(0, os.path.join(third_party_dir, "EvoPrompt"))
+
 from cot_pilot.core.experiment_manager import ExperimentManager
 
 def main():
