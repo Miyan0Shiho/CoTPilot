@@ -26,9 +26,13 @@ class ExperimentManager:
                        min_samples: int = 10, 
                        iterations: int = 10, 
                        pop_size: int = 5,
-                       patience: int = 3):
+                       patience: int = 3,
+                       concurrency_params: dict = None):
         
         self.logger.info(f"🚀 Starting Experiment: {dataset_name} with {model_type}")
+        
+        if concurrency_params is None:
+            concurrency_params = {"max_num_workers": 4, "batch_size": 4}
         
         # 0. Log Config
         config = {
@@ -38,7 +42,9 @@ class ExperimentManager:
             "Min Samples": min_samples,
             "Iterations": iterations,
             "Population Size": pop_size,
-            "Patience": patience
+            "Patience": patience,
+            "Max Workers": concurrency_params.get("max_num_workers"),
+            "Batch Size": concurrency_params.get("batch_size")
         }
         self.reporter.add_config(config)
         
@@ -64,8 +70,6 @@ class ExperimentManager:
         self.logger.info("Step 2/5: Analyzing Baseline Performance...")
         analyzer = BaselineAnalyzer(work_dir=os.path.join(self.work_dir, "baseline"))
         initial_prompt = "Let's think step by step."
-        
-        concurrency_params = {"max_num_workers": 4, "batch_size": 4}
         
         # This analyzes Standard vs Baseline CoT
         baseline_report = analyzer.analyze(

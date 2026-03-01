@@ -21,7 +21,19 @@ def main():
     parser.add_argument('--iterations', type=int, default=5, help='Max evolution iterations')
     parser.add_argument('--pop-size', type=int, default=10, help='Population size')
     
+    # Concurrency arguments
+    parser.add_argument('--max-workers', type=int, default=4, help='Max concurrent workers (default: 4)')
+    parser.add_argument('--batch-size', type=int, default=4, help='Inference batch size (default: 4)')
+    parser.add_argument('--qps', type=float, default=None, help='Queries per second (for API models)')
+    
     args = parser.parse_args()
+    
+    concurrency_params = {
+        "max_num_workers": args.max_workers,
+        "batch_size": args.batch_size
+    }
+    if args.qps:
+        concurrency_params["query_per_second"] = args.qps
     
     manager = ExperimentManager(work_dir="./workspace/gsm8k")
     
@@ -31,7 +43,8 @@ def main():
         sample_ratio=args.sample_ratio,
         min_samples=args.min_samples,
         iterations=args.iterations,
-        pop_size=args.pop_size
+        pop_size=args.pop_size,
+        concurrency_params=concurrency_params
     )
 
 if __name__ == "__main__":
