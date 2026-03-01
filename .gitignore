@@ -1,0 +1,32 @@
+# Workspace
+workspace/
+!workspace/.gitkeep
+
+# Python Artifacts
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.Python
+env/
+venv/
+.env
+
+# Logs and Reports
+*.log
+*.txt
+*.md
+!README.md
+!spec.md
+!tasks.md
+!checklist.md
+!plan.md
+
+# OS Artifacts
+.DS_Store
+Thumbs.db
+
+# OpenCompass outputs (if outside workspace)
+outputs/
+predictions/
+results/
