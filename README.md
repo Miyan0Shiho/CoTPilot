@@ -23,11 +23,9 @@ CoT-Pilot is an advanced framework for automating the discovery of optimal Chain
 git clone https://github.com/Miyan0Shiho/CoT-Pilot.git
 cd CoT-Pilot
 
-# Install Python dependencies
-pip install -r requirements.txt
-
-# Note: Core frameworks (OpenCompass and EvoPrompt) are included in third_party/
-# and will be automatically loaded by the scripts. No manual installation required.
+# Run the installation script to set up core and third-party dependencies
+chmod +x install.sh
+./install.sh
 ```
 
 ### Running an Experiment
