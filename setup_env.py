@@ -11,23 +11,21 @@ def run_cmd(cmd, cwd=None):
         print(f"❌ Error running command: {e}")
         sys.exit(1)
 
-def setup_third_party():
+def setup_workspace():
+    # CoT-Pilot root
     base_dir = os.path.dirname(os.path.abspath(__file__))
-    third_party_dir = os.path.join(base_dir, "third_party")
+    # Parent directory (where OpenCompass and EvoPrompt will live)
+    workspace_root = os.path.abspath(os.path.join(base_dir, ".."))
     
-    if not os.path.exists(third_party_dir):
-        os.makedirs(third_party_dir)
-        print(f"📂 Created {third_party_dir}")
+    print(f"📂 Setup Workspace Root: {workspace_root}")
 
     # 1. OpenCompass Setup
-    oc_dir = os.path.join(third_party_dir, "opencompass")
+    oc_dir = os.path.join(workspace_root, "opencompass")
     if not os.path.exists(oc_dir):
         print("📦 Cloning OpenCompass...")
-        run_cmd("git clone https://github.com/open-compass/opencompass.git", cwd=third_party_dir)
-        # Optional: Checkout specific commit if needed for stability
-        # run_cmd("git checkout <commit-hash>", cwd=oc_dir)
+        run_cmd("git clone https://github.com/open-compass/opencompass.git", cwd=workspace_root)
     else:
-        print("✅ OpenCompass already exists.")
+        print("✅ OpenCompass already exists in parent directory.")
     
     # Apply OpenCompass Patch
     patch_file = os.path.join(base_dir, "patches", "opencompass.patch")
@@ -35,7 +33,6 @@ def setup_third_party():
         print("🔧 Applying OpenCompass custom patches...")
         try:
             # Check if patch is already applied to avoid errors
-            # Simple check: try dry-run
             run_cmd(f"git apply --check {patch_file}", cwd=oc_dir)
             run_cmd(f"git apply {patch_file}", cwd=oc_dir)
             print("✅ Patch applied successfully.")
@@ -46,12 +43,12 @@ def setup_third_party():
     run_cmd(f"{sys.executable} -m pip install -e .", cwd=oc_dir)
 
     # 2. EvoPrompt Setup
-    ep_dir = os.path.join(third_party_dir, "EvoPrompt")
+    ep_dir = os.path.join(workspace_root, "EvoPrompt")
     if not os.path.exists(ep_dir):
         print("📦 Cloning EvoPrompt...")
-        run_cmd("git clone https://github.com/naszilla/EvoPrompt.git", cwd=third_party_dir)
+        run_cmd("git clone https://github.com/naszilla/EvoPrompt.git", cwd=workspace_root)
     else:
-        print("✅ EvoPrompt already exists.")
+        print("✅ EvoPrompt already exists in parent directory.")
 
     # Apply EvoPrompt Patch
     ep_patch_file = os.path.join(base_dir, "patches", "evoprompt.patch")
@@ -73,15 +70,13 @@ def setup_third_party():
     run_cmd(f"{sys.executable} -m pip install -r requirements.txt", cwd=base_dir)
 
     # 4. Dataset Download (Optional helper)
-    # OpenCompass usually handles this, but we can ensure data/ folder exists
     data_dir = os.path.join(base_dir, "data")
     if not os.path.exists(data_dir):
         os.makedirs(data_dir)
-        # Note: GSM8K is usually downloaded automatically by HuggingFace datasets or OpenCompass
         
     print("\n✨ Environment Setup Complete!")
     print("You can now run experiments using:")
     print("  python main.py --dataset gsm8k --model qwen3:0.6b")
 
 if __name__ == "__main__":
-    setup_third_party()
+    setup_workspace()

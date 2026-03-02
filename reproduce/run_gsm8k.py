@@ -3,10 +3,21 @@ import sys
 import os
 
 # Add project root to path
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "../")))
+current_dir = os.path.dirname(os.path.abspath(__file__))
+sys.path.insert(0, os.path.abspath(os.path.join(current_dir, "../")))
 
-# Add third_party dependencies to path
-third_party_dir = os.path.abspath(os.path.join(os.path.dirname(__file__), "../third_party"))
+# Add parent directory dependencies to path (setup_env.py clones them to ../)
+parent_dir = os.path.abspath(os.path.join(current_dir, "../../"))
+opencompass_dir = os.path.join(parent_dir, "opencompass")
+evoprompt_dir = os.path.join(parent_dir, "EvoPrompt")
+
+if os.path.exists(opencompass_dir):
+    sys.path.insert(0, opencompass_dir)
+if os.path.exists(evoprompt_dir):
+    sys.path.insert(0, evoprompt_dir)
+
+# Fallback: Check third_party for backward compatibility
+third_party_dir = os.path.abspath(os.path.join(current_dir, "../third_party"))
 if os.path.exists(third_party_dir):
     sys.path.insert(0, os.path.join(third_party_dir, "opencompass"))
     sys.path.insert(0, os.path.join(third_party_dir, "EvoPrompt"))
