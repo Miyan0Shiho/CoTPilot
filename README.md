@@ -13,9 +13,10 @@ CoT-Pilot is an advanced framework for automating the discovery of optimal Chain
 
 ### Prerequisites
 
-- Python 3.9+
-- OpenCompass
-- EvoPrompt dependencies
+- **Python**: 3.10+ (Recommended)
+- **PyTorch**: 2.0+ (Required for OpenCompass)
+- **Transformers**: 4.35+
+- **OpenCompass**: Handled automatically by `setup_env.py` (with critical patches applied)
 
 ### Installation
 
@@ -23,7 +24,7 @@ CoT-Pilot is an advanced framework for automating the discovery of optimal Chain
 git clone https://github.com/Miyan0Shiho/CoT-Pilot.git
 cd CoT-Pilot
 
-# One-step environment setup (Clones dependencies, installs packages)
+# One-step environment setup (Clones dependencies, applies patches, installs packages)
 python setup_env.py
 ```
 
