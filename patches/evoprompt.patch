@@ -1,0 +1,20 @@
+diff --git a/requirements.txt b/requirements.txt
+index fa64fd0..0c501e6 100644
+--- a/requirements.txt
++++ b/requirements.txt
+@@ -1,11 +1,13 @@
+ backoff==2.2.1
+ comet==3.1.0
+-datasets==2.13.1
++datasets>=2.14.0
+ fairseq==0.12.2
++omegaconf==2.0.6
++hydra-core==1.0.7
+ mosestokenizer==1.2.1
+ msal==1.20.0
+ nevergrad==0.7.0
+-numpy==1.23.3
++numpy>=1.23.3
+ openai==0.27.8
+ PyYAML==6.0
+ PyYAML==6.0

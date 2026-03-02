@@ -29,6 +29,19 @@ def setup_third_party():
     else:
         print("✅ OpenCompass already exists.")
     
+    # Apply OpenCompass Patch
+    patch_file = os.path.join(base_dir, "patches", "opencompass.patch")
+    if os.path.exists(patch_file):
+        print("🔧 Applying OpenCompass custom patches...")
+        try:
+            # Check if patch is already applied to avoid errors
+            # Simple check: try dry-run
+            run_cmd(f"git apply --check {patch_file}", cwd=oc_dir)
+            run_cmd(f"git apply {patch_file}", cwd=oc_dir)
+            print("✅ Patch applied successfully.")
+        except:
+            print("⚠️  Patch might already be applied or failed. Skipping.")
+    
     print("🔧 Installing OpenCompass dependencies...")
     run_cmd(f"{sys.executable} -m pip install -e .", cwd=oc_dir)
 
@@ -40,6 +53,17 @@ def setup_third_party():
     else:
         print("✅ EvoPrompt already exists.")
 
+    # Apply EvoPrompt Patch
+    ep_patch_file = os.path.join(base_dir, "patches", "evoprompt.patch")
+    if os.path.exists(ep_patch_file):
+        print("🔧 Applying EvoPrompt custom patches...")
+        try:
+            run_cmd(f"git apply --check {ep_patch_file}", cwd=ep_dir)
+            run_cmd(f"git apply {ep_patch_file}", cwd=ep_dir)
+            print("✅ Patch applied successfully.")
+        except:
+            print("⚠️  Patch might already be applied or failed. Skipping.")
+            
     print("🔧 Installing EvoPrompt dependencies...")
     if os.path.exists(os.path.join(ep_dir, "requirements.txt")):
         run_cmd(f"{sys.executable} -m pip install -r requirements.txt", cwd=ep_dir)

@@ -1,0 +1,144 @@
+diff --git a/opencompass/datasets/gsm8k.py b/opencompass/datasets/gsm8k.py
+index ffe0fdd8..e3e6f8c1 100644
+--- a/opencompass/datasets/gsm8k.py
++++ b/opencompass/datasets/gsm8k.py
+@@ -24,7 +24,16 @@ class GSM8KDataset(BaseDataset):
+         else:
+             datasets = {}
+             for split in ['train', 'test']:
+-                split_path = os.path.join(path, split + '.jsonl')
++                # Handle possible path issues
++                if path and str(path).endswith('.jsonl'):
++                    split_path = path
++                else:
++                    split_path = os.path.join(path, split + '.jsonl')
++                    
++                if not os.path.exists(split_path):
++                     # Try finding in common locations or skip
++                     continue
++                     
+                 dataset = []
+                 with open(split_path, 'r', encoding='utf-8') as f:
+                     for line in f:
+diff --git a/opencompass/datasets/mmlu.py b/opencompass/datasets/mmlu.py
+index 7ccba881..6de46110 100644
+--- a/opencompass/datasets/mmlu.py
++++ b/opencompass/datasets/mmlu.py
+@@ -16,6 +16,14 @@ class MMLUDataset(BaseDataset):
+ 
+     @staticmethod
+     def load(path: str, name: str, **kwargs):
++        # Handle single JSONL file override
++        if path.endswith('.jsonl'):
++            raw_data = []
++            with open(path, encoding='utf-8') as f:
++                for line in f:
++                    raw_data.append(json.loads(line))
++            return DatasetDict({'test': Dataset.from_list(raw_data), 'dev': Dataset.from_list(raw_data)})
++
+         path = get_data_path(path)
+         dataset = DatasetDict()
+         if environ.get('DATASET_SOURCE') == 'ModelScope':
+diff --git a/opencompass/models/openai_api.py b/opencompass/models/openai_api.py
+index 6c6cb15f..5bf3bf56 100644
+--- a/opencompass/models/openai_api.py
++++ b/opencompass/models/openai_api.py
+@@ -428,14 +428,19 @@ class OpenAI(BaseAPIModel):
+             self.logger.warn(
+                 'Can not get tokenizer automatically, '
+                 'will use default tokenizer gpt-4 for length calculation.')
+-            default_tokenizer = 'gpt-4'
+-
+-            enc = self.tiktoken.encoding_for_model(default_tokenizer)
+-            if self.verbose:
+-                self.logger.info(
+-                    f'Successfully load default tiktoken tokenizer: '
+-                    f' {default_tokenizer}')
+-            return len(enc.encode(prompt, disallowed_special=()))
++            try:
++                default_tokenizer = 'gpt-4'
++                enc = self.tiktoken.encoding_for_model(default_tokenizer)
++                if self.verbose:
++                    self.logger.info(
++                        f'Successfully load default tiktoken tokenizer: '
++                        f' {default_tokenizer}')
++                return len(enc.encode(prompt, disallowed_special=()))
++            except Exception:
++                self.logger.warn(
++                    'Failed to load tiktoken. Fallback to simple length estimation (char_len / 4).'
++                )
++                return len(prompt) // 4
+ 
+     def _bin_trim(self, prompt: str, num_token: int, mode: str) -> str:
+         """Get a suffix of prompt which is no longer than num_token tokens.
+@@ -537,11 +542,11 @@ class OpenAI(BaseAPIModel):
+                     input_content = bin_trim_wrapper(input_content)
+                 processed_prompts.append(input_content)
+                 msg = {'content': input_content}
+-                if item['role'] == 'HUMAN':
++                if item['role'] == 'HUMAN' or item['role'] == 'user':
+                     msg['role'] = 'user'
+-                elif item['role'] == 'BOT':
++                elif item['role'] == 'BOT' or item['role'] == 'assistant':
+                     msg['role'] = 'assistant'
+-                elif item['role'] == 'SYSTEM':
++                elif item['role'] == 'SYSTEM' or item['role'] == 'system':
+                     msg['role'] = 'system'
+                 messages.append(msg)
+             input_len = sum(
+@@ -718,6 +723,10 @@ class OpenAISDK(OpenAI):
+                         responses.choices[0].message,
+                         'reasoning_content',
+                         '',
++                    ) and not getattr(
++                        responses.choices[0].message,
++                        'reasoning',
++                        '',
+                     ))):  # noqa: E125
+                     # There is case that server does not return any content
+                     if responses.choices[0].finish_reason == 'stop':
+@@ -742,7 +751,8 @@ class OpenAISDK(OpenAI):
+                     continue
+ 
+                 reasoning_content = (getattr(responses.choices[0].message,
+-                                             'reasoning_content', '') or '')
++                                             'reasoning_content', '') or getattr(responses.choices[0].message,
++                                             'reasoning', '') or '')
+                 content = responses.choices[0].message.content or ''
+                 # Concat Reasoning Content and tags to content
+                 if reasoning_content:
+@@ -974,6 +984,10 @@ class OpenAISDKRollout(OpenAI):
+                         responses.choices[0].message,
+                         'reasoning_content',
+                         '',
++                    ) and not getattr(
++                        responses.choices[0].message,
++                        'reasoning',
++                        '',
+                     ))):  # noqa: E125
+                     # There is case that server does not return any content
+                     if responses.choices[0].finish_reason == 'stop':
+diff --git a/opencompass/utils/text_postprocessors.py b/opencompass/utils/text_postprocessors.py
+index 8eed2647..450d8997 100644
+--- a/opencompass/utils/text_postprocessors.py
++++ b/opencompass/utils/text_postprocessors.py
+@@ -284,3 +284,19 @@ def extract_non_reasoning_content(
+                                  re.DOTALL)
+     non_reasoning_content = reasoning_regex.sub('', text).strip()
+     return non_reasoning_content
++
++
++@TEXT_POSTPROCESSORS.register_module('gsm8k_dataset')
++def gsm8k_dataset_postprocess(text: str) -> str:
++    if '#### ' in text:
++        return text.split('#### ')[1].replace(',', '')
++    return text.replace(',', '')
++
++
++@TEXT_POSTPROCESSORS.register_module('gsm8k')
++def gsm8k_postprocess(text: str) -> str:
++    text = text.split('Question:')[0]
++    numbers = re.findall(r'\-?\d+\.\d+|\-?\d+', text)
++    if not numbers:
++        return 'NULL'
++    return numbers[-1]
