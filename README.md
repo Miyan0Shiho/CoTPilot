@@ -23,9 +23,8 @@ CoT-Pilot is an advanced framework for automating the discovery of optimal Chain
 git clone https://github.com/Miyan0Shiho/CoT-Pilot.git
 cd CoT-Pilot
 
-# Run the installation script to set up core and third-party dependencies
-chmod +x install.sh
-./install.sh
+# One-step environment setup (Clones dependencies, installs packages)
+python setup_env.py
 ```
 
 ### Running an Experiment
